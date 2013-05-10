@@ -9,7 +9,7 @@ module ActiveRecord
         attr_accessor :using, :where, :index_opclass
       end
 
-      class SpatialColumn
+      SpatialColumn.class_eval do
         include PgArrayParser
         attr_accessor :array
 
@@ -81,8 +81,8 @@ module ActiveRecord
           end
         end
       end
-=begin
-      class MainAdapter
+
+      MainAdapter.class_eval do
         class UnsupportedFeature < Exception; end
 
         class ColumnDefinition < ActiveRecord::ConnectionAdapters::ColumnDefinition
@@ -319,7 +319,6 @@ module ActiveRecord
           end
         end
       end
-=end
     end
   end
 end
