@@ -1,6 +1,6 @@
 source 'https://rubygems.org'
 
-# Specify your gem's dependencies in postgres_ext.gemspec
+# Specify your gem's dependencies in activerecord-postgis-array.gemspec
 gemspec
 unless ENV['CI']
   if RUBY_PLATFORM =~ /java/

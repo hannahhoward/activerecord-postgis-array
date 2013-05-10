@@ -1,9 +1,9 @@
-# PostgresExt
+# ActiveRecordPostgisArrays
 
 Adds support for missing PostgreSQL data types to ActiveRecord.
 
-[![Build Status](https://secure.travis-ci.org/dockyard/postgres_ext.png?branch=master)](http://travis-ci.org/dockyard/postgres_ext)
-[![Code Climate](https://codeclimate.com/badge.png)](https://codeclimate.com/github/dockyard/postgres_ext)
+[![Build Status](https://secure.travis-ci.org/dockyard/activerecord-postgis-array.png?branch=master)](http://travis-ci.org/dockyard/activerecord-postgis-array)
+[![Code Climate](https://codeclimate.com/badge.png)](https://codeclimate.com/github/dockyard/activerecord-postgis-array)
 
 ## Looking for help? ##
 
@@ -17,7 +17,7 @@ question with `DockYard` so we can find it.
 
 Add this line to your application's Gemfile:
 
-    gem 'postgres_ext'
+    gem 'activerecord-postgis-array'
 
 And then execute:
 
@@ -25,11 +25,11 @@ And then execute:
 
 Or install it yourself as:
 
-    $ gem install postgres_ext
+    $ gem install activerecord-postgis-array
 
 ## Usage
 
-Just `require 'postgres_ext'` and use ActiveRecord as you normally would! postgres\_ext extends
+Just `require 'activerecord-postgis-array'` and use ActiveRecord as you normally would! postgres\_ext extends
 ActiveRecord's data type handling.
 
  * [Migration/Schema.rb support](docs/migrations.md)

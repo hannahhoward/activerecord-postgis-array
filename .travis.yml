@@ -6,7 +6,7 @@ rvm:
   - jruby-19mode
 
 before_script:
-  - psql -c 'create database postgres_ext_test;' -U postgres
+  - psql -c 'create database activerecord-postgis-array_test;' -U postgres
   - cp spec/dummy/config/database.yml.example spec/dummy/config/database.yml
   - RAILS_ENV=test rake db:migrate
 

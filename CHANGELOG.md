@@ -55,7 +55,7 @@ Mario Visic (@mariovisic)
  * Cleans up spec organization  - Dan McClain (@danmcclain)
  * Adds support for index operator classes (:index_opclass) in
 migrations and schema dumps - & Dan McClain (@danmcclain)
- * Fixes Arel Nodes created by postgres_ext  - Dan McClain (@danmcclain)
+ * Fixes Arel Nodes created by activerecord-postgis-array  - Dan McClain (@danmcclain)
  * Add support to schema.rb to export and import extensions - Keenan
 Brock (@kbrock)
  * Handles PostgreSQL strings when passed in as defaults by fixing the

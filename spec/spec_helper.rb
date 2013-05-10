@@ -12,7 +12,7 @@ ENGINE_RAILS_ROOT=File.join(File.dirname(__FILE__), '../')
 # Requires supporting ruby files with custom matchers and macros, etc,
 # in spec/support/ and its subdirectories.
 Dir[File.join(ENGINE_RAILS_ROOT, 'spec/support/**/*.rb')].each { |f| require f }
-require 'postgres_ext'
+require 'activerecord-postgis-array'
 
 RSpec.configure do |config|
   config.before(:suite) { ActiveRecord::Base.connection.add_extension('pg_trgm') if ActiveRecord::Base.connection.supports_extensions?}
