@@ -1,4 +1,4 @@
-require 'activerecor-postgis-adapter'
+require 'activerecord-postgis-adapter'
 require 'ipaddr'
 require 'pg_array_parser'
 
