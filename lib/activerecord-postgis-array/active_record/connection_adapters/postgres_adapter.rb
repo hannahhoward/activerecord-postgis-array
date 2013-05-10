@@ -5,7 +5,7 @@ require 'pg_array_parser'
 module ActiveRecord
   module ConnectionAdapters
     module PostGISAdapter
-      ::RGeo::ActiveRecord::SpatialIndexDefinition.class_eval
+      ::RGeo::ActiveRecord::SpatialIndexDefinition.class_eval do
         attr_accessor :using, :index_opclass
       end
 
@@ -34,7 +34,7 @@ module ActiveRecord
           elsif self.array && Array === value
             value
           else
-              type_cast_without_extended_types(value)
+            type_cast_without_extended_types(value)
           end
         end
         alias_method_chain :type_cast, :extended_types
@@ -114,56 +114,56 @@ module ActiveRecord
         # will force string array components into on retrievial.
         def encoding_for_ruby
           @database_encoding ||= case ActiveRecord::Base.connection.encoding
-                                 when 'UTF8'
-                                   'UTF-8'
-                                 else
-                                   ActiveRecord::Base.connection.encoding
-                                 end
+          when 'UTF8'
+           'UTF-8'
+         else
+           ActiveRecord::Base.connection.encoding
+         end
+       end
+
+       def supports_extensions?
+        postgresql_version > 90100
+      end
+
+      def add_column_options!(sql, options)
+        if options[:array] || options[:column].try(:array)
+          sql << '[]'
         end
+        super
+      end
 
-        def supports_extensions?
-          postgresql_version > 90100
-        end
+      def add_index(table_name, column_name, options = {})
+        index_name, unique, index_columns, _ = add_index_options(table_name, column_name, options)
+        if options.is_a? Hash
+          index_type = options[:using] ? " USING #{options[:using]} " : ""
+          index_type = 'USING GIST' if options[:spatial]
+          index_options = options[:where] ? " WHERE #{options[:where]}" : ""
+          index_opclass = options[:index_opclass]
+          index_algorithm = options[:algorithm] == :concurrently ? ' CONCURRENTLY' : ''
 
-        def add_column_options!(sql, options)
-          if options[:array] || options[:column].try(:array)
-            sql << '[]'
-          end
-          super
-        end
-
-        def add_index(table_name, column_name, options = {})
-          index_name, unique, index_columns, _ = add_index_options(table_name, column_name, options)
-          if options.is_a? Hash
-            index_type = options[:using] ? " USING #{options[:using]} " : ""
-            index_type = 'USING GIST' if options[:spatial]
-            index_options = options[:where] ? " WHERE #{options[:where]}" : ""
-            index_opclass = options[:index_opclass]
-            index_algorithm = options[:algorithm] == :concurrently ? ' CONCURRENTLY' : ''
-
-            if options[:algorithm].present? && options[:algorithm] != :concurrently
-              raise ArgumentError.new 'Algorithm must be one of the following: :concurrently'
-            end
-          end
-          execute "CREATE #{unique} INDEX#{index_algorithm} #{quote_column_name(index_name)} ON #{quote_table_name(table_name)}#{index_type}(#{index_columns} #{index_opclass})#{index_options}"
-        end
-
-        def add_extension(extension_name, options={})
-          raise UnsupportedFeature.new('Extensions are not support by this version of PostgreSQL') unless supports_extensions?
-          execute "CREATE extension IF NOT EXISTS \"#{extension_name}\""
-        end
-
-        def change_table(table_name, options = {})
-          if supports_bulk_alter? && options[:bulk]
-            recorder = ActiveRecord::Migration::CommandRecorder.new(self)
-            yield Table.new(table_name, recorder)
-            bulk_change_table(table_name, recorder.commands)
-          else
-            yield Table.new(table_name, self)
+          if options[:algorithm].present? && options[:algorithm] != :concurrently
+            raise ArgumentError.new 'Algorithm must be one of the following: :concurrently'
           end
         end
+        execute "CREATE #{unique} INDEX#{index_algorithm} #{quote_column_name(index_name)} ON #{quote_table_name(table_name)}#{index_type}(#{index_columns} #{index_opclass})#{index_options}"
+      end
 
-        if RUBY_PLATFORM =~ /java/
+      def add_extension(extension_name, options={})
+        raise UnsupportedFeature.new('Extensions are not support by this version of PostgreSQL') unless supports_extensions?
+        execute "CREATE extension IF NOT EXISTS \"#{extension_name}\""
+      end
+
+      def change_table(table_name, options = {})
+        if supports_bulk_alter? && options[:bulk]
+          recorder = ActiveRecord::Migration::CommandRecorder.new(self)
+          yield Table.new(table_name, recorder)
+          bulk_change_table(table_name, recorder.commands)
+        else
+          yield Table.new(table_name, self)
+        end
+      end
+
+      if RUBY_PLATFORM =~ /java/
           # The activerecord-jbdc-adapter implements PostgreSQLAdapter#add_column differently from the active-record version
           # so we have to patch that version in JRuby, but not in MRI/YARV
           def add_column(table_name, column_name, type, options = {})
@@ -230,15 +230,15 @@ module ActiveRecord
           opclasses
           # FULL REPLACEMENT. RE-CHECK ON NEW VERSIONS.
           result_ = query(<<-SQL, 'SCHEMA')
-            SELECT distinct i.relname, d.indisunique, d.indkey, pg_get_indexdef(d.indexrelid), t.oid
-            FROM pg_class t
-            INNER JOIN pg_index d ON t.oid = d.indrelid
-            INNER JOIN pg_class i ON d.indexrelid = i.oid
-            WHERE i.relkind = 'i'
-              AND d.indisprimary = 'f'
-              AND t.relname = '#{table_name_}'
-              AND i.relnamespace IN (SELECT oid FROM pg_namespace WHERE nspname = ANY (current_schemas(false)) )
-            ORDER BY i.relname
+          SELECT distinct i.relname, d.indisunique, d.indkey, pg_get_indexdef(d.indexrelid), t.oid
+          FROM pg_class t
+          INNER JOIN pg_index d ON t.oid = d.indrelid
+          INNER JOIN pg_class i ON d.indexrelid = i.oid
+          WHERE i.relkind = 'i'
+          AND d.indisprimary = 'f'
+          AND t.relname = '#{table_name_}'
+          AND i.relnamespace IN (SELECT oid FROM pg_namespace WHERE nspname = ANY (current_schemas(false)) )
+          ORDER BY i.relname
           SQL
 
           result_.map do |row_|
@@ -249,21 +249,21 @@ module ActiveRecord
             oid_ = row_[4]
 
             columns_ = query(<<-SQL, "SCHEMA")
-              SELECT a.attnum, a.attname, t.typname
-                FROM pg_attribute a, pg_type t
+            SELECT a.attnum, a.attname, t.typname
+            FROM pg_attribute a, pg_type t
               WHERE a.attrelid = #{oid_}
                 AND a.attnum IN (#{indkey_.join(",")})
                 AND a.atttypid = t.oid
-            SQL
-            columns_ = columns_.inject({}){ |h_, r_| h_[r_[0].to_s] = [r_[1], r_[2]]; h_ }
-            column_names_ = columns_.values_at(*indkey_).compact.map{ |a_| a_[0] }
+                SQL
+                columns_ = columns_.inject({}){ |h_, r_| h_[r_[0].to_s] = [r_[1], r_[2]]; h_ }
+                column_names_ = columns_.values_at(*indkey_).compact.map{ |a_| a_[0] }
 
             # add info on sort order for columns (only desc order is explicitly specified, asc is the default)
             desc_order_columns_ = inddef_.scan(/(\w+) DESC/).flatten
             orders_ = desc_order_columns_.any? ? Hash[desc_order_columns_.map {|order_column_| [order_column_, :desc]}] : {}
             where_ = inddef_.scan(/WHERE (.+)$/).flatten[0]
             spatial_ = inddef_ =~ /using\s+gist/i && columns_.size == 1 &&
-              (columns_.values.first[1] == 'geometry' || columns_.values.first[1] == 'geography')
+            (columns_.values.first[1] == 'geometry' || columns_.values.first[1] == 'geography')
 
             using_ = inddef_.scan(/USING (.+?) /).flatten[0].to_sym
             if using_
@@ -275,7 +275,7 @@ module ActiveRecord
               index_def_ = ::RGeo::ActiveRecord::SpatialIndexDefinition.new(table_name_, index_name_, unique_, column_names_, [], orders_, where_, spatial_ ? true : false)
               index_def_.using = using_ if using_ && using_ != :btree && !spatial_
               index_def_.index_opclass = index_op_ if using_ && using_ != :btree && !spatial_ && index_op_
-              index_def
+              index_def_
             else 
               nil
             end
