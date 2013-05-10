@@ -5,8 +5,8 @@ require 'pg_array_parser'
 module ActiveRecord
   module ConnectionAdapters
     module PostGISAdapter
-      class IndexDefinition
-        attr_accessor :using, :where, :index_opclass
+      ::RGeo::ActiveRecord::SpatialIndexDefinition.class_eval
+        attr_accessor :using, :index_opclass
       end
 
       SpatialColumn.class_eval do
