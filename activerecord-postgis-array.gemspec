@@ -17,7 +17,8 @@ Gem::Specification.new do |gem|
 
   gem.add_dependency 'activerecord', '~> 3.2.0'
   gem.add_dependency 'pg_array_parser', '~> 0.0.8'
-
+  gem.add_dependency 'activerecord-postgis-adapter'
+  
   gem.add_development_dependency 'rails', '~> 3.2.0'
   gem.add_development_dependency 'rspec-rails', '~> 2.12.0'
   gem.add_development_dependency 'bourne', '~> 1.3.0'
