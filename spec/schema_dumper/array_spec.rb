@@ -6,12 +6,12 @@ describe 'array schema dump' do
   it 'correctly generates cidr column statements' do
     stream = StringIO.new
     connection.create_table :testings do |t|
-      t.cidr :network_column, :array => true
+      t.integer :network_column, :array => true
     end
 
     ActiveRecord::SchemaDumper.dump(connection, stream)
     output = stream.string
 
-    output.should match /t\.cidr "network_column".*?:array => true/
+    output.should match /t\.integer "network_column".*?:array => true/
   end
 end
