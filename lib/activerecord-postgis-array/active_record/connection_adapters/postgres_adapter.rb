@@ -208,7 +208,7 @@ module ActiveRecord
       alias_method_chain :type_cast, :extended_types
 
       def quote_with_extended_types(value, column = nil)
-        elsif value.is_a? Array
+        if value.is_a? Array
           "'#{array_to_string(value, column, true)}'"
         elsif column.respond_to?(:array) && column.array && value =~ /^\{.*\}$/
           "'#{value}'"
