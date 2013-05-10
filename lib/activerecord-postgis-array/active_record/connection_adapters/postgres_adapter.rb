@@ -280,6 +280,10 @@ module ActiveRecord
 
       private
 
+      def array_to_string(value, column, encode_single_quotes = false)
+        "{#{value.map { |val| item_to_string(val, column, encode_single_quotes) }.join(',')}}"
+      end
+      
       def item_to_string(value, column, encode_single_quotes = false)
         return 'NULL' if value.nil?
 
