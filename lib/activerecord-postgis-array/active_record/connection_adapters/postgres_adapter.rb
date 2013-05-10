@@ -23,15 +23,6 @@ module ActiveRecord
       end
       alias_method_chain :initialize, :extended_types
 
-      def klass_with_extended_types
-        case type
-        when :inet, :cidr   then IPAddr
-        else
-          klass_without_extended_types
-        end
-      end
-      alias_method_chain :klass, :extended_types
-
       def type_cast_with_extended_types(value)
         return nil if value.nil?
         return coder.load(value) if encoded?
@@ -42,11 +33,7 @@ module ActiveRecord
         elsif self.array && Array === value
           value
         else
-          case type
-          when :inet, :cidr   then klass.string_to_cidr_address(value)
-          else
             type_cast_without_extended_types(value)
-          end
         end
       end
       alias_method_chain :type_cast, :extended_types
@@ -80,24 +67,10 @@ module ActiveRecord
         if self.array
           "#{klass}.new('#{self.name}', #{self.default.nil? ? 'nil' : "'#{self.default}'"}, '#{self.sql_type}').string_to_array(#{var_name})"
         else
-          case type
-          when :inet, :cidr   then "#{klass}.string_to_cidr_address(#{var_name})"
-          else
-            type_cast_code_without_extended_types(var_name)
-          end
+          type_cast_code_without_extended_types(var_name)
         end
       end
       alias_method_chain :type_cast_code, :extended_types
-
-      class << self
-        def string_to_cidr_address(string)
-          return string unless String === string
-
-          if string.present?
-            IPAddr.new(string)
-          end
-        end
-      end
 
       private
 
@@ -106,50 +79,16 @@ module ActiveRecord
           item.respond_to?(:force_encoding) ? item.force_encoding(ActiveRecord::Base.connection.encoding_for_ruby) : item
         end
       end
-
-      def simplified_type_with_extended_types(field_type)
-        case field_type
-        when 'uuid'
-          :uuid
-        when 'citext'
-          :citext
-        when 'inet'
-          :inet
-        when 'cidr'
-          :cidr
-        when 'macaddr'
-          :macaddr
-        when 'ean13'
-          :ean13
-        else
-          simplified_type_without_extended_types field_type
-        end
-      end
-
-      alias_method_chain :simplified_type, :extended_types
     end
 
     class PostgreSQLAdapter
       class UnsupportedFeature < Exception; end
-
-      EXTENDED_TYPES = { :inet => {:name => 'inet'}, :cidr => {:name => 'cidr'}, :macaddr => {:name => 'macaddr'},
-                         :uuid => {:name => 'uuid'}, :citext => {:name => 'citext'}, :ean13 => {:name => 'ean13'} }
 
       class ColumnDefinition < ActiveRecord::ConnectionAdapters::ColumnDefinition
         attr_accessor :array
       end
 
       class TableDefinition
-        EXTENDED_TYPES.keys.map(&:to_s).each do |column_type|
-          class_eval <<-EOV, __FILE__, __LINE__ + 1
-            def #{column_type}(*args)                                   # def string(*args)
-              options = args.extract_options!                           #   options = args.extract_options!
-              column_names = args                                       #   column_names = args
-              type = :'#{column_type}'                                  #   type = :string
-              column_names.each { |name| column(name, type, options) }  #   column_names.each { |name| column(name, type, options) }
-            end                                                         # end
-          EOV
-        end
 
         def column(name, type=nil, options = {})
           super
@@ -169,33 +108,6 @@ module ActiveRecord
           definition
         end
       end
-
-      class Table < ActiveRecord::ConnectionAdapters::Table
-        EXTENDED_TYPES.keys.map(&:to_s).each do |column_type|
-          class_eval <<-EOV, __FILE__, __LINE__ + 1
-            def #{column_type}(*args)                                          # def string(*args)
-              options = args.extract_options!                                  #   options = args.extract_options!
-              column_names = args                                              #   column_names = args
-              type = :'#{column_type}'                                         #   type = :string
-              column_names.each do |name|                                      #   column_names.each do |name|
-                column = ColumnDefinition.new(@base, name.to_s, type)          #     column = ColumnDefinition.new(@base, name, type)
-                if options[:limit]                                             #     if options[:limit]
-                  column.limit = options[:limit]                               #       column.limit = options[:limit]
-                elsif native[type].is_a?(Hash)                                 #     elsif native[type].is_a?(Hash)
-                  column.limit = native[type][:limit]                          #       column.limit = native[type][:limit]
-                end                                                            #     end
-                column.precision = options[:precision]                         #     column.precision = options[:precision]
-                column.scale = options[:scale]                                 #     column.scale = options[:scale]
-                column.default = options[:default]                             #     column.default = options[:default]
-                column.null = options[:null]                                   #     column.null = options[:null]
-                @base.add_column(@table_name, name, column.sql_type, options)  #     @base.add_column(@table_name, name, column.sql_type, options)
-              end                                                              #   end
-            end                                                                # end
-          EOV
-        end
-      end
-
-      NATIVE_DATABASE_TYPES.merge!(EXTENDED_TYPES)
 
       # Translate from the current database encoding to the encoding we
       # will force string array components into on retrievial.
@@ -285,8 +197,6 @@ module ActiveRecord
           else
             type_cast_without_extended_types(value, column)
           end
-        when IPAddr
-          ipaddr_to_string(value)
         else
           type_cast_without_extended_types(value, column)
         end
@@ -298,8 +208,6 @@ module ActiveRecord
       alias_method_chain :type_cast, :extended_types
 
       def quote_with_extended_types(value, column = nil)
-        if value.is_a? IPAddr
-          "'#{type_cast(value, column)}'"
         elsif value.is_a? Array
           "'#{array_to_string(value, column, true)}'"
         elsif column.respond_to?(:array) && column.array && value =~ /^\{.*\}$/
@@ -371,14 +279,6 @@ module ActiveRecord
       end
 
       private
-
-      def ipaddr_to_string(value)
-        "#{value.to_s}/#{value.instance_variable_get(:@mask_addr).to_s(2).count('1')}"
-      end
-
-      def array_to_string(value, column, encode_single_quotes = false)
-        "{#{value.map { |val| item_to_string(val, column, encode_single_quotes) }.join(',')}}"
-      end
 
       def item_to_string(value, column, encode_single_quotes = false)
         return 'NULL' if value.nil?
