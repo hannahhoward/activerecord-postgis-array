@@ -9,9 +9,9 @@ describe 'Array migrations' do
       it 'creates an array column' do
         lambda do
           connection.create_table :data_types do |t|
-            t.cidr :array_1, :array => true
-            t.cidr :array_2, :array_3, :array => true
-            t.column :array_4, :cidr, :array => true
+            t.integer :array_1, :array => true
+            t.integer :array_2, :array_3, :array => true
+            t.column :array_4, :integer, :array => true
           end
         end.should_not raise_exception
 
@@ -22,10 +22,10 @@ describe 'Array migrations' do
         array_3 = columns.detect { |c| c.name == 'array_3'}
         array_4 = columns.detect { |c| c.name == 'array_4'}
 
-        array_1.sql_type.should eq 'cidr[]'
-        array_2.sql_type.should eq 'cidr[]'
-        array_3.sql_type.should eq 'cidr[]'
-        array_4.sql_type.should eq 'cidr[]'
+        array_1.sql_type.should eq 'integer[]'
+        array_2.sql_type.should eq 'integer[]'
+        array_3.sql_type.should eq 'integer[]'
+        array_4.sql_type.should eq 'integer[]'
       end
     end
   end
@@ -37,13 +37,13 @@ describe 'Array migrations' do
       context 'no default' do
         it 'creates an array column' do
           lambda do
-            connection.add_column :data_types, :array_5, :cidr, :array => true
-          end.should_not raise_exception
+            connection.add_column :data_types, :array_5, :integer, :array => true
+          end.should_notß raise_exception
 
           columns = connection.columns(:data_types)
 
           array_5 = columns.detect { |c| c.name == 'array_5'}
-          array_5.sql_type.should eq 'cidr[]'
+          array_5.sql_type.should eq 'integer[]'
         end
       end
 
@@ -66,8 +66,8 @@ describe 'Array migrations' do
       it 'creates an array column' do
         lambda do
           connection.change_table :data_types do |t|
-            t.column :array_6, :cidr, :array => true
-            t.cidr :array_7, :array => true
+            t.column :array_6, :integer, :array => true
+            t.integer :array_7, :array => true
           end
         end.should_not raise_exception
 
@@ -76,8 +76,8 @@ describe 'Array migrations' do
         array_6 = columns.detect { |c| c.name == 'array_6'}
         array_7 = columns.detect { |c| c.name == 'array_7'}
 
-        array_6.sql_type.should eq 'cidr[]'
-        array_7.sql_type.should eq 'cidr[]'
+        array_6.sql_type.should eq 'integer[]'
+        array_7.sql_type.should eq 'integer[]'
       end
     end
   end
