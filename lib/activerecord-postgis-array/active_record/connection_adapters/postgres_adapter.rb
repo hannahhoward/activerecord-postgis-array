@@ -81,7 +81,7 @@ module ActiveRecord
           end
         end
       end
-
+=begin
       class MainAdapter
         class UnsupportedFeature < Exception; end
 
@@ -319,6 +319,7 @@ module ActiveRecord
           end
         end
       end
+=end
     end
   end
 end
