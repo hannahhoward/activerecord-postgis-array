@@ -38,7 +38,7 @@ describe 'Array migrations' do
         it 'creates an array column' do
           lambda do
             connection.add_column :data_types, :array_5, :integer, :array => true
-          end.should_notß raise_exception
+          end.should_not raise_exception
 
           columns = connection.columns(:data_types)
 
