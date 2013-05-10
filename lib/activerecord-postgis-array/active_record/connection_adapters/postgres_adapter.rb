@@ -268,7 +268,7 @@ module ActiveRecord
             using_ = inddef_.scan(/USING (.+?) /).flatten[0].to_sym
             if using_
               index_op_ = inddef_.scan(/USING .+? \(.+? (#{opclasses.join('|')})\)/).flatten
-              index_op_ = index_op_[0].to_sym if index_op.present?
+              index_op_ = index_op_[0].to_sym if index_op_.present?
             end
 
             if column_names_.present?

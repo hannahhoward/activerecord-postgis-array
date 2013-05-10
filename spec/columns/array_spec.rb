@@ -3,9 +3,9 @@
 require 'spec_helper'
 
 describe 'Array column' do
-  let!(:integer_array_column) { ActiveRecord::ConnectionAdapters::PostgreSQLColumn.new 'field', nil, 'integer[]'}
-  let!(:string_array_column) { ActiveRecord::ConnectionAdapters::PostgreSQLColumn.new 'field', nil, 'character varying(255)[]'}
-  let!(:text_array_column) { ActiveRecord::ConnectionAdapters::PostgreSQLColumn.new 'field', nil, 'text[]'}
+  let!(:integer_array_column) { ActiveRecord::ConnectionAdapters::PostGISAdapter::SpatialColumn.new 'field', nil, 'integer[]'}
+  let!(:string_array_column) { ActiveRecord::ConnectionAdapters::PostGISAdapter::SpatialColumn.new 'field', nil, 'character varying(255)[]'}
+  let!(:text_array_column) { ActiveRecord::ConnectionAdapters::PostGISAdapter::SpatialColumn.new 'field', nil, 'text[]'}
   let!(:adapter) { ActiveRecord::Base.connection }
 
   context 'string array' do
