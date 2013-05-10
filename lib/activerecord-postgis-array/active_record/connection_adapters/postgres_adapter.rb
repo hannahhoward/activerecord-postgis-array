@@ -226,7 +226,7 @@ module ActiveRecord
 
         # this is based upon rails 4 changes to include different index methods
         # Returns an array of indexes for the given table.
-        def indexes(table_name, name = nil)
+        def indexes(table_name_, name_ = nil)
           opclasses
           # FULL REPLACEMENT. RE-CHECK ON NEW VERSIONS.
           result_ = query(<<-SQL, 'SCHEMA')
