@@ -14,8 +14,6 @@
 ActiveRecord::Schema.define(:version => 20120501163758) do
 
   create_table "people", :force => true do |t|
-    t.inet     "ip"
-    t.cidr     "subnet"
     t.integer  "tag_ids",                      :array => true
     t.string   "tags",                         :array => true
     t.text     "biography"
