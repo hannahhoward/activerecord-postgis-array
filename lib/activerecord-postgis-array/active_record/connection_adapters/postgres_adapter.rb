@@ -89,10 +89,32 @@ module ActiveRecord
           attr_accessor :array
         end
 
-        class SpatialTableDefinition
+        SpatialTableDefinition.class_eval
 
           def column(name, type=nil, options = {})
-            super
+            if (info_ = @base.spatial_column_constructor(type_.to_sym))
+              type_ = options_[:type] || info_[:type] || type_
+              if type_.to_s == 'geometry' &&
+                (options_[:no_constraints] ||
+                 options_[:limit].is_a?(::Hash) && options_[:limit][:no_constraints])
+              then
+                options_.delete(:limit)
+              else
+                options_[:type] = type_
+                type_ = :spatial
+              end
+            end
+            super(name_, type_, options_)
+            if type_ == :spatial
+              col_ = self[name_]
+              col_.extend(SpatialColumnDefinitionMethods) unless col_.respond_to?(:geographic?)
+              options_.merge!(col_.limit) if col_.limit.is_a?(::Hash)
+              col_.set_spatial_type(options_[:type])
+              col_.set_geographic(options_[:geographic])
+              col_.set_srid(options_[:srid])
+              col_.set_has_z(options_[:has_z])
+              col_.set_has_m(options_[:has_m])
+            end
 
             column = self[name]
             column.array     = options[:array]
