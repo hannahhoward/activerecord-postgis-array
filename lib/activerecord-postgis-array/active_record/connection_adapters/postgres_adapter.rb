@@ -89,7 +89,7 @@ module ActiveRecord
           attr_accessor :array
         end
 
-        SpatialTableDefinition.class_eval
+        SpatialTableDefinition.class_eval do
 
           def column(name_, type_, options_={})
             if (info_ = @base.spatial_column_constructor(type_.to_sym))
